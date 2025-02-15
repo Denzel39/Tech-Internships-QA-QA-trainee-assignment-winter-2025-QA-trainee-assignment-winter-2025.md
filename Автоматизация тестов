@@ -1,0 +1,65 @@
+Используем Python + Selenium WebDriver для автоматизации тестов.
+Код автоматизированных тестов.
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+
+# Настройка драйвера
+driver = webdriver.Chrome()
+
+# Функция для создания объявления
+def create_ad(title, description, price):
+    driver.get("http://tech-avito-intern.jumpingcrab.com/")
+    driver.find_element(By.LINK_TEXT, "Create ad").click()
+    driver.find_element(By.ID, "title").send_keys(title)
+    driver.find_element(By.ID, "description").send_keys(description)
+    driver.find_element(By.ID, "price").send_keys(price)
+    driver.find_element(By.XPATH, "//button[text()='Submit']").click()
+
+# TC-01: Создание объявления с корректными данными
+def test_create_valid_ad():
+    create_ad("Test Ad", "This is a test ad", "100")
+    assert "Ad successfully created!" in driver.page_source
+
+# TC-02: Создание объявления с пустыми полями
+def test_create_empty_ad():
+    create_ad("", "", "")
+    assert "Title is required" in driver.page_source
+    assert "Description is required" in driver.page_source
+    assert "Price is required" in driver.page_source
+
+# TC-03: Создание объявления с некорректным форматом цены
+def test_create_invalid_price():
+    create_ad("Invalid Price", "This ad has invalid price", "abc")
+    assert "Price must be a number" in driver.page_source
+
+# TC-04: Редактирование объявления
+def test_edit_ad():
+    driver.get("http://tech-avito-intern.jumpingcrab.com/")
+    driver.find_element(By.LINK_TEXT, "Edit").click()
+    driver.find_element(By.ID, "title").clear()
+    driver.find_element(By.ID, "title").send_keys("Updated Ad")
+    driver.find_element(By.XPATH, "//button[text()='Save']").click()
+    assert "Updated Ad" in driver.page_source
+
+# TC-06: Поиск по ключевому слову
+def test_search_ad():
+    search_box = driver.find_element(By.NAME, "query")
+    search_box.send_keys("Test")
+    search_box.send_keys(Keys.RETURN)
+    assert "Test Ad" in driver.page_source
+
+# Запуск тестов
+if __name__ == "__main__":
+    try:
+        test_create_valid_ad()
+        test_create_empty_ad()
+        test_create_invalid_price()
+        test_edit_ad()
+        test_search_ad()
+        print("All tests passed!")
+    except AssertionError as e:
+        print(f"Test failed: {e}")
+    finally:
+        driver.quit()
